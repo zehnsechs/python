@@ -7,7 +7,7 @@ import numpy as np
 image_file = cbook.get_sample_data('/Users/cknierim/Desktop/python/png1.png')
 image = plt.imread(image_file)
 
-print image[0][0]
+plt.figimage(image)
 dim = image.shape
 
 
@@ -82,11 +82,12 @@ print "y4: " , hom_p4n[1]/hom_p4n[2],y4n
 invh = np.linalg.inv(h)
 
 
-for i in range(0,heigth):
-	for j in range(0,width):
+for i in range(heigth):
+	for j in range(width):
 				hom_p = np.dot(invh,[i,j,1])
 				pos = (np.round(hom_p[0]/hom_p[2]),np.round(hom_p[1]/hom_p[2]))
-				newimg[i][j] = image[pos[0]][pos[1]]
+				if pos[0] in range(dim[0]) and pos[1] in range(dim[1]):
+					newimg[i][j] = image[pos[0]][pos[1]]
 
 
 a = np.zeros((100,100))
@@ -95,7 +96,5 @@ for i in range(0,100):
 		a[i][j] = (i+j)*0.01
 
 print a[0][0]
-plt.imshow(newimg)
-
-plt.axis('off')
+plt.figimage(newimg,xo = dim[1]+50)
 plt.show()
