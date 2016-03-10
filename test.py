@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.cbook as cbook
+import mpl_toolkits.axes_grid1 as mplt_a
 import numpy as np
 
 
 image_file = cbook.get_sample_data('/Users/cknierim/Desktop/python/png1.png')
 image = plt.imread(image_file)
 
-plt.figimage(image)
 dim = image.shape
 
 
@@ -96,5 +96,12 @@ for i in range(0,100):
 		a[i][j] = (i+j)*0.01
 
 print a[0][0]
-plt.figimage(newimg,xo = dim[1]+50)
+
+fig = plt.figure(figsize=(5.,5.))
+grid = mplt_a.ImageGrid(fig,222,
+							nrows_ncols=(1,2),
+							axes_pad=0.1,
+							aspect= True)
+grid[0].imshow(image)
+grid[1].imshow(newimg)
 plt.show()
