@@ -110,15 +110,29 @@ print '---------------------'
 """
 
 invh = np.linalg.inv(h)
+def get_safe_col((y,x)):
+	if (x >= dim[1]):
+		x = dim[1]-1
+	elif (x < 0):
+		x = 0
+	if (y >= dim[0]):
+		y = dim[0]-1
+	elif (y < 0):
+		y = 0
+	return image[y][x]
 
+def find_col((y,x)):
+	val = image[y][x]
+	if bw:
+		val = val + get_safe_col((y-1,x))+get_safe_col((y,x-1))+get_safe_col((y+1,x))+get_safe_col((y,x+1))/5
+	return val 
 
 for i in range(heigth):
 	for j in range(width):
 				hom_p = np.dot(invh,[i,j,1])
 				pos = (np.round(hom_p[0]/hom_p[2]),np.round(hom_p[1]/hom_p[2]))
 				if pos[0] in range(dim[0]) and pos[1] in range(dim[1]):
-					newimg[i][j] = image[pos[0]][pos[1]]
-
+					newimg[i][j] = find_col((pos))
 """"
 use for debugging
 
@@ -147,7 +161,7 @@ fig , (ax1,ax2) = plt.subplots(2,sharey = True,sharex = True)
 
 print newimg.shape
 print newimg[0][0]
-ax1.imshow(image,)
+ax1.imshow(image)
 ax2.imshow(newimg)
 
 mido = (sum([x1o,x2o,x3o,x4o])/4.,sum([y1o,y2o,y3o,y4o])/4.)
@@ -159,8 +173,7 @@ ax1.plot(back_trans(midn)[0],back_trans(midn)[1],'gs')
 
 ax2.plot([y1n,y2n,y3n,y4n],[x1n,x2n,x3n,x4n],'bo')
 ax2.plot(midn[0],midn[1],'gs')
-print plt.ylim()
+
 plt.ylim(ymin=max(heigth,dim[0])+2)
 print plt.ylim()
-#plt.ylim(0,max(heigth,dim[0]))
 plt.show()
