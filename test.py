@@ -97,11 +97,16 @@ for i in range(0,100):
 
 print a[0][0]
 
-fig = plt.figure(figsize=(5.,5.))
-grid = mplt_a.ImageGrid(fig,222,
-							nrows_ncols=(1,2),
-							axes_pad=0.1,
-							aspect= True)
-grid[0].imshow(image)
-grid[1].imshow(newimg)
+fig , (ax1,ax2) = plt.subplots(2,sharey = True,sharex = True)
+
+ax1.imshow(image)
+ax2.imshow(newimg)
+
+mid= ()
+
+
+ax1.plot([x1o,x2o,x3o,x4o],[y1o,y2o,y3o,y4o],'ro')
+ax1.plot(sum([x1o,x2o,x3o,x4o])/4.,sum([y1o,y2o,y3o,y4o])/4.,'gs')
+ax2.plot([x1n,x2n,x3n,x4n],[y1n,y2n,y3n,y4n],'bo')
+ax2.plot(sum([x1n,x2n,x3n,x4n])/4.,sum([y1n,y2n,y3n,y4n])/4.,'gs')
 plt.show()
