@@ -4,6 +4,11 @@ import matplotlib.cbook as cbook
 import mpl_toolkits.axes_grid1 as mplt_a
 import numpy as np
 
+"""
+more fancy...
+
+and more
+"""
 bw = False
 
 a = np.zeros((10,10))
