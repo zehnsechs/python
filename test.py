@@ -4,11 +4,6 @@ import matplotlib.cbook as cbook
 import mpl_toolkits.axes_grid1 as mplt_a
 import numpy as np
 
-"""
-more fancy...
-
-and more
-"""
 bw = False
 
 a = np.zeros((10,10))
@@ -34,9 +29,6 @@ if len(dim) == 2:
 x1o = 0
 y1o = 0
 
-"""
-another change
-"""
 x2o = 0
 y2o = dim[0]-1
 
@@ -87,8 +79,8 @@ hv = np.array(vt[8])
 h = np.array([hv[0:3],hv[3:6],hv[6:9]])
 print h.shape
 
-width = max([x1n,x2n,x3n,x4n])+1 #- min([x1n,x2n,x3n,x4n])
-heigth = max([y1n,y2n,y3n,y4n])+1 #- min([y1n,y2n,y3n,y4n])
+width = max([y1n,y2n,y3n,y4n])+1 #- min([x1n,x2n,x3n,x4n])
+heigth = max([x1n,x2n,x3n,x4n])+1 #- min([y1n,y2n,y3n,y4n])
 
 print ":"
 
@@ -97,6 +89,8 @@ if bw:
 else:
 	newimg = np.zeros((heigth,width,4))
 
+"""
+use for debugging
 hom_p1n = np.dot(h,[x1o,y1o,1])
 hom_p2n = np.dot(h,[x2o,y2o,1])
 hom_p3n = np.dot(h,[x3o,y3o,1]) 
@@ -113,7 +107,7 @@ print "y3: " , hom_p3n[1]/hom_p3n[2],y3n
 print "x4: " , hom_p4n[0]/hom_p4n[2],x4n
 print "y4: " , hom_p4n[1]/hom_p4n[2],y4n
 print '---------------------'
-
+"""
 
 invh = np.linalg.inv(h)
 
@@ -124,6 +118,9 @@ for i in range(heigth):
 				pos = (np.round(hom_p[0]/hom_p[2]),np.round(hom_p[1]/hom_p[2]))
 				if pos[0] in range(dim[0]) and pos[1] in range(dim[1]):
 					newimg[i][j] = image[pos[0]][pos[1]]
+
+""""
+use for debugging
 
 hom_p1o = np.dot(invh,[x1n,y1n,1])
 hom_p2o = np.dot(invh,[x2n,y2n,1])
@@ -140,7 +137,7 @@ print "y3: " , hom_p3o[1]/hom_p3o[2],y3o
 print "x4: " , hom_p4o[0]/hom_p4o[2],x4o
 print "y4: " , hom_p4o[1]/hom_p4o[2],y4o
 
-
+"""
 
 def back_trans((x1,x2)):
 	hom_pt = np.dot(invh,[x1,x2,1])
@@ -150,21 +147,20 @@ fig , (ax1,ax2) = plt.subplots(2,sharey = True,sharex = True)
 
 print newimg.shape
 print newimg[0][0]
-ax1.imshow(image)
+ax1.imshow(image,)
 ax2.imshow(newimg)
 
 mido = (sum([x1o,x2o,x3o,x4o])/4.,sum([y1o,y2o,y3o,y4o])/4.)
 midn = (sum([x1n,x2n,x3n,x4n])/4.,sum([y1n,y2n,y3n,y4n])/4.)
 
-ax1.plot([x1o,x2o,x3o,x4o],[y1o,y2o,y3o,y4o],'ro')
+ax1.plot([y1o,y2o,y3o,y4o],[x1o,x2o,x3o,x4o],'ro')
 ax1.plot(mido[0],mido[1],'ys')
 ax1.plot(back_trans(midn)[0],back_trans(midn)[1],'gs')
 
-ax2.plot([x1n,x2n,x3n,x4n],[y1n,y2n,y3n,y4n],'bo')
+ax2.plot([y1n,y2n,y3n,y4n],[x1n,x2n,x3n,x4n],'bo')
 ax2.plot(midn[0],midn[1],'gs')
+print plt.ylim()
+plt.ylim(ymin=max(heigth,dim[0])+2)
+print plt.ylim()
+#plt.ylim(0,max(heigth,dim[0]))
 plt.show()
-
-
-"""
-Fancy experiment :(sad)
-"""
