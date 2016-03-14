@@ -14,12 +14,12 @@ for i in range(10):
 
 print a[0][0]
 
-#file = input("Bild")
-#path = '/Users/cknierim/python/' + file
-#print path
-#image_file = cbook.get_sample_data(path)
-#image = plt.imread(image_file)
-image = a
+file = input("Bild")
+path = '/Users/cknierim/python/' + file
+print path
+image_file = cbook.get_sample_data(path)
+image = plt.imread(image_file)
+
 dim = image.shape
 print dim
 
@@ -109,6 +109,12 @@ print "y4: " , hom_p4n[1]/hom_p4n[2],y4n
 print '---------------------'
 """
 
+
+def back_trans((x1,x2)):
+	hom_p = np.dot(invh,[x1,x2,1])
+	return (np.round(hom_p[0]/hom_p[2]),np.round(hom_p[1]/hom_p[2]))
+	
+
 invh = np.linalg.inv(h)
 def get_safe_col((y,x)):
 	if (x >= dim[1]):
@@ -124,15 +130,15 @@ def get_safe_col((y,x)):
 def find_col((y,x)):
 	val = image[y][x]
 	if bw:
-		val = val + get_safe_col((y-1,x))+get_safe_col((y,x-1))+get_safe_col((y+1,x))+get_safe_col((y,x+1))/5
+		val = 4*val + get_safe_col((y-1,x))+get_safe_col((y,x-1))+get_safe_col((y+1,x))+get_safe_col((y,x+1))/8
 	return val 
 
 for i in range(heigth):
 	for j in range(width):
-				hom_p = np.dot(invh,[i,j,1])
-				pos = (np.round(hom_p[0]/hom_p[2]),np.round(hom_p[1]/hom_p[2]))
+				pos = back_trans((i,j))
 				if pos[0] in range(dim[0]) and pos[1] in range(dim[1]):
-					newimg[i][j] = find_col((pos))
+					newimg[i][j] = image [pos[0]][pos[1]]
+					#find_col((pos))
 """"
 use for debugging
 
@@ -151,16 +157,12 @@ print "y3: " , hom_p3o[1]/hom_p3o[2],y3o
 print "x4: " , hom_p4o[0]/hom_p4o[2],x4o
 print "y4: " , hom_p4o[1]/hom_p4o[2],y4o
 
-"""
-
-def back_trans((x1,x2)):
-	hom_pt = np.dot(invh,[x1,x2,1])
-	return hom_pt[0]/hom_pt[2], hom_pt[1]/hom_pt[2]
-
+"""			
 fig , (ax1,ax2) = plt.subplots(2,sharey = True,sharex = True)
 
 print newimg.shape
 print newimg[0][0]
+
 ax1.imshow(image)
 ax2.imshow(newimg)
 
@@ -168,12 +170,14 @@ mido = (sum([x1o,x2o,x3o,x4o])/4.,sum([y1o,y2o,y3o,y4o])/4.)
 midn = (sum([x1n,x2n,x3n,x4n])/4.,sum([y1n,y2n,y3n,y4n])/4.)
 
 ax1.plot([y1o,y2o,y3o,y4o],[x1o,x2o,x3o,x4o],'ro')
-ax1.plot(mido[0],mido[1],'ys')
+ax1.plot(mido[1],mido[0],'ys')
 ax1.plot(back_trans(midn)[0],back_trans(midn)[1],'gs')
 
 ax2.plot([y1n,y2n,y3n,y4n],[x1n,x2n,x3n,x4n],'bo')
-ax2.plot(midn[0],midn[1],'gs')
+ax2.plot(midn[1],midn[0],'gs')
 
 plt.ylim(ymin=max(heigth,dim[0])+2)
 print plt.ylim()
+
+fig.set_size_inches(plt.figaspect(0.5))
 plt.show()
