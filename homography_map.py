@@ -29,3 +29,5 @@ def inv_map_hom(dest,h):
 def from_hom_coord(coord):
 	return map (lambda (x,y,w) : (x/w,y/w), coord) 
 
+def calc_inv(h):
+	return np.linalg.inv(h)
