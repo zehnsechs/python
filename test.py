@@ -23,6 +23,7 @@ image = plt.imread(image_file)
 dim = image.shape
 print dim
 
+# check if image is in black and white
 if len(dim) == 2:
 	bw = True
 
@@ -79,8 +80,8 @@ hv = np.array(vt[8])
 h = np.array([hv[0:3],hv[3:6],hv[6:9]])
 print h.shape
 
-width = max([y1n,y2n,y3n,y4n])+1 #- min([x1n,x2n,x3n,x4n])
-heigth = max([x1n,x2n,x3n,x4n])+1 #- min([y1n,y2n,y3n,y4n])
+width = max([x1n,x2n,x3n,x4n])+1 #- min([x1n,x2n,x3n,x4n])
+heigth = max([y1n,y2n,y3n,y4n])+1 #- min([y1n,y2n,y3n,y4n])
 
 print ":"
 
@@ -117,17 +118,17 @@ def back_trans((x1,x2)):
 
 invh = np.linalg.inv(h)
 def get_safe_col((y,x)):
-	if (x >= dim[1]):
-		x = dim[1]-1
+	if (x >= dim[0]):
+		x = dim[0]-1
 	elif (x < 0):
 		x = 0
-	if (y >= dim[0]):
-		y = dim[0]-1
+	if (y >= dim[1]):
+		y = dim[1]-1
 	elif (y < 0):
 		y = 0
 	return image[y][x]
 
-def find_col((y,x)):
+def find_col((x,y)):
 	val = image[y][x]
 	if bw:
 		val = 4*val + get_safe_col((y-1,x))+get_safe_col((y,x-1))+get_safe_col((y+1,x))+get_safe_col((y,x+1))/8
@@ -135,9 +136,9 @@ def find_col((y,x)):
 
 for i in range(heigth):
 	for j in range(width):
-				pos = back_trans((i,j))
+				pos = back_trans((j,i))
 				if pos[0] in range(dim[0]) and pos[1] in range(dim[1]):
-					newimg[i][j] = image [pos[0]][pos[1]]
+					newimg[i][j] = image [pos[1]][pos[0]]
 					#find_col((pos))
 """"
 use for debugging
@@ -169,12 +170,12 @@ ax2.imshow(newimg)
 mido = (sum([x1o,x2o,x3o,x4o])/4.,sum([y1o,y2o,y3o,y4o])/4.)
 midn = (sum([x1n,x2n,x3n,x4n])/4.,sum([y1n,y2n,y3n,y4n])/4.)
 
-ax1.plot([y1o,y2o,y3o,y4o],[x1o,x2o,x3o,x4o],'ro')
-ax1.plot(mido[1],mido[0],'ys')
+ax1.plot([x1o,x2o,x3o,x4o],[y1o,y2o,y3o,y4o],'ro')
+ax1.plot(mido[0],mido[1],'ys')
 ax1.plot(back_trans(midn)[0],back_trans(midn)[1],'gs')
 
-ax2.plot([y1n,y2n,y3n,y4n],[x1n,x2n,x3n,x4n],'bo')
-ax2.plot(midn[1],midn[0],'gs')
+ax2.plot([x1n,x2n,x3n,x4n],[y1n,y2n,y3n,y4n],'bo')
+ax2.plot(midn[0],midn[1],'gs')
 
 plt.ylim(ymin=max(heigth,dim[0])+2)
 print plt.ylim()
