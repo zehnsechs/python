@@ -21,7 +21,7 @@ def detect(path):
 	image = plt.imread(image_file)
 	dim = image.shape
 	print dim
-    corners = np.array
+    corners = []
     
 
 	#pixel in circle centerd at x,y with index i (0-15) clockwise start at top 
@@ -88,4 +88,7 @@ def detect(path):
             state = high_speed_test(i,j)
 			if (state!= 0):
 				if coner_cand(i,j,state):
+                    corners.append((i,j))
+
+    return corners
 
