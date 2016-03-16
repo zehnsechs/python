@@ -63,9 +63,34 @@ print "Total Keypoints own impl without nonmaxSuppression: ", len(my_points) , m
 
 (la,lb) = get_point_list(my_points)
 plt.imshow(gray)
-
-
 plt.plot(lb,la,'ro')
 plt.savefig('my_fig.png')
+
+points = []
+
+for p in list_kp:
+    if p in my_points:
+        my_points.remove(p)
+    else:
+        points.append(p)
+
+print 'nicht bei mir:---------------------'
+for (y,x) in points:
+    print 'Punkt' ,(y,x) , gray[y][x]
+    for i in range(16):
+        (yd,xd) = fd.p[i]
+        print '     ',i, gray[y+yd][x+xd]
+    print '------------------'
+
+
+print 'nur bei mir: --------------------------------'
+for (y,x) in my_points:
+    print 'Punkt' ,(y,x) , gray[y][x]
+    for i in range(16):
+        (yd,xd) = fd.p[i]
+        print '     ',i, gray[y+yd][x+xd]
+    print '------------------'
+
+
 
 

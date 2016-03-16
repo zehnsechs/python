@@ -26,13 +26,14 @@ def detect(img, nonMaxSur = True):
 
     corners = []
     #pixel in circle centerd at x,y with index i (0-15) clockwise start at top 
-    #return -1 -> darker
-    #		 1 -> brighter
+    #return  1 -> brighter
+    #		-1 -> darker
     #		 0 -> eq/ out of range
     def circle_pix_dif(y,x,i):
         (yd,xd) = p[i]
         col_d = image[y+yd][x+xd] - v
-        if  abs(col_d) < t:
+       # print 'd', col_d
+        if  abs(col_d) <= t:
             return 0;
         else:
             return np.sign(col_d)
@@ -42,19 +43,21 @@ def detect(img, nonMaxSur = True):
     def high_speed_test(y,x):
         d = 0
         b = 0
+        p = []
         result  = np.array([circle_pix_dif(y,x,0),circle_pix_dif(y,x,quater),
             circle_pix_dif(y,x,2*quater),circle_pix_dif(y,x,3*quater)])
-        for r in result :
-            if r == 1:
-                b+= 1
-            if r == -1:
-                d += 1
-        if (b >= 3):
+        for i in range(4):
+            r =result[i]
+            if (r not in p) & ((r == result[(i+1)%4] )| (r == result[(i-1)%4])):
+                p.append(r)
+
+        if -1 in p:
             return -1
-        if (d >= 3):
+        if 1 in p:
             return 1
         else:
             return 0
+
    
     def corner_score((y,x)):
         sum = 0
@@ -68,16 +71,15 @@ def detect(img, nonMaxSur = True):
 
 
     def coner_cand(y,x,c):
-        #print x,y,c
+        #print 'punkt',(y,x,c)
         count = 0
         #darker
-        if c == 0:
-            c = 1
-
+       # if c == 0:
+        #    c =1
         if(c == -1):
             for i in range(pattern_size+K+1):
                 #print count
-                if (circle_pix_dif(y,x,i%15) == 1):
+                if (circle_pix_dif(y,x,i%16) == -1):
                     count += 1
                     if (count > K):
                         return True
@@ -87,16 +89,15 @@ def detect(img, nonMaxSur = True):
         #brighter
         if (c == 1):
             for i in range(pattern_size+K+1):
-                #print count
-                if (circle_pix_dif(y,x,i%15) == -1):
+                
+                if (circle_pix_dif(y,x,i%16) == 1):
                     count += 1
                     if (count > K):
                         return True
                 else:
                     count = 0
-        if (c ==1):
-            return coner_cand(y,x,-1)
-
+        #if c == 1:
+         #   return coner_cand(y,x,-1)
 
         return False
 
@@ -105,9 +106,10 @@ def detect(img, nonMaxSur = True):
         for j in range(3,dim[1]-3):
             v = int(image[i][j])
             state = high_speed_test(i,j)
-            #if (state!= 0):
-            if coner_cand(i,j,state):
-                corners.append((i,j))
+            #print (i,j,state)
+            if (state!= 0):
+                if coner_cand(i,j,state):
+                    corners.append((i,j))
    # print corners
     #print '_______________________________'
 
