@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from matplotlib import cbook 
 import feature_det as fd
 
-path = '/Users/cknierim/python/horse.png'
+path = '/Users/cknierim/python/2.png'
 img = cv2.imread(path)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -12,7 +12,7 @@ print gray.shape
 
 # Initiate FAST object with default values
 fast = cv2.FastFeatureDetector_create()
-"""
+
 # find and draw the keypoints
 kp = fast.detect(img,None)
 img2 = np.array(img)
@@ -28,14 +28,15 @@ print "neighborhood: ", fast.getType()
 
 cv2.imwrite('fast_true.png',img2)
 
-    list_kp = [(k.pt[0],k.pt[1]) for k in kp]
-    """
+list_kp = [(k.pt[1],k.pt[0]) for k in kp]
+
+
 # Disable nonmaxSuppression
 fast.setNonmaxSuppression(False)
 kp = fast.detect(gray,None)
-list_kp = [(k.pt[1],k.pt[0]) for k in kp]
+list_kp2 = [(k.pt[1],k.pt[0]) for k in kp]
 print '########################################'
-print "Total Keypoints without nonmaxSuppression: ", len(kp) , list_kp
+print "Total Keypoints without nonmaxSuppression: ", len(kp) , list_kp2
 
 print'_____________________________________________'
 
@@ -55,7 +56,7 @@ def get_point_list(l):
         b.append(y)
     return a,b
 
-my_points = fd.detect(gray,False)
+my_points = fd.detect(gray,True)
 
 print "Total Keypoints own impl without nonmaxSuppression: ", len(my_points) , my_points
 
@@ -73,7 +74,7 @@ for p in list_kp:
         my_points.remove(p)
     else:
         points.append(p)
-
+"""
 print 'nicht bei mir:---------------------'
 for (y,x) in points:
     print 'Punkt' ,(y,x) , gray[y][x]
@@ -91,6 +92,6 @@ for (y,x) in my_points:
         print '     ',i, gray[y+yd][x+xd]
     print '------------------'
 
-
+"""
 
 

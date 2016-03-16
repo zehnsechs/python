@@ -74,8 +74,8 @@ def detect(img, nonMaxSur = True):
         #print 'punkt',(y,x,c)
         count = 0
         #darker
-       # if c == 0:
-        #    c =1
+        if c == 0:
+            c =-1
         if(c == -1):
             for i in range(pattern_size+K+1):
                 #print count
@@ -96,8 +96,8 @@ def detect(img, nonMaxSur = True):
                         return True
                 else:
                     count = 0
-        #if c == 1:
-         #   return coner_cand(y,x,-1)
+        if c == -1:
+            return coner_cand(y,x,1)
 
         return False
 
@@ -107,9 +107,9 @@ def detect(img, nonMaxSur = True):
             v = int(image[i][j])
             state = high_speed_test(i,j)
             #print (i,j,state)
-            if (state!= 0):
-                if coner_cand(i,j,state):
-                    corners.append((i,j))
+            #if (state!= 0):
+            if coner_cand(i,j,state):
+                corners.append((i,j))
    # print corners
     #print '_______________________________'
 
@@ -127,17 +127,22 @@ def detect(img, nonMaxSur = True):
             else:
                 i += 1
                 """
+        l = len(corners)  
 
-        while i < len(corners)-1:
+        while i < l-1:
             j = i+1
-            while j < len(corners):
+            while j < l:
                 c1 = corners[i]
                 c2 = corners[j]
-                if dist(c1,c2) < 10:
+                print c1,c2,i,j
+                print dist(c1,c2)
+                if dist(c1,c2) < 7:
                     if corner_score(c1) > corner_score(c2):
                         corners.remove(c2)
                     else:
                         corners.remove(c1)
+                        j = i+1
+                    l -= 1
                 else:
                      j += 1
             i += 1
