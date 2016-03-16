@@ -39,8 +39,8 @@ print "Total Keypoints without nonmaxSuppression: ", len(kp) , list_kp
 
 print'_____________________________________________'
 
-img3 = np.array(gray) 
-cv2.drawKeypoints(gray, kp,img3, color=(255,0,0))
+img3 = np.array(img) 
+cv2.drawKeypoints(img, kp,img3, color=(255,0,0))
 
 cv2.imwrite('fast_false.png',img3)
 

@@ -29,7 +29,7 @@ def detect(img, nonMaxSur = True):
     #return -1 -> darker
     #		 1 -> brighter
     #		 0 -> eq/ out of range
-    def circle_pix_dif(y,x,i,v):
+    def circle_pix_dif(y,x,i):
         (yd,xd) = p[i]
         col_d = image[y+yd][x+xd] - v
         if  abs(col_d) < t:
@@ -42,8 +42,8 @@ def detect(img, nonMaxSur = True):
     def high_speed_test(y,x):
         d = 0
         b = 0
-        result  = np.array([circle_pix_dif(y,x,0,v),circle_pix_dif(y,x,quater,v),
-            circle_pix_dif(y,x,2*quater,v),circle_pix_dif(y,x,3*quater,v)])
+        result  = np.array([circle_pix_dif(y,x,0),circle_pix_dif(y,x,quater),
+            circle_pix_dif(y,x,2*quater),circle_pix_dif(y,x,3*quater)])
         for r in result :
             if r == 1:
                 b+= 1
@@ -70,13 +70,14 @@ def detect(img, nonMaxSur = True):
     def coner_cand(y,x,c):
         #print x,y,c
         count = 0
+        #darker
         if c == 0:
             c = 1
-        #darker
+
         if(c == -1):
             for i in range(pattern_size+K+1):
                 #print count
-                if (circle_pix_dif(y,x,i%15,v) == 1):
+                if (circle_pix_dif(y,x,i%15) == 1):
                     count += 1
                     if (count > K):
                         return True
@@ -87,7 +88,7 @@ def detect(img, nonMaxSur = True):
         if (c == 1):
             for i in range(pattern_size+K+1):
                 #print count
-                if (circle_pix_dif(y,x,i%15,v) == -1):
+                if (circle_pix_dif(y,x,i%15) == -1):
                     count += 1
                     if (count > K):
                         return True
@@ -96,14 +97,15 @@ def detect(img, nonMaxSur = True):
         if (c ==1):
             return coner_cand(y,x,-1)
 
+
         return False
 
 
     for i in range(3,dim[0]-3):
         for j in range(3,dim[1]-3):
-            v = image[i][j]
+            v = int(image[i][j])
             state = high_speed_test(i,j)
-           # if (state!= 0):
+            #if (state!= 0):
             if coner_cand(i,j,state):
                 corners.append((i,j))
    # print corners
