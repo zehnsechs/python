@@ -4,7 +4,7 @@ import matplotlib.cbook as cbook
 import math
 
 # threshold
-t = 0.1
+t = 10.0
 
 #circle_pos
 p = np.array([(0,3),(1,3),(2,2),(3,1),
@@ -15,7 +15,7 @@ p = np.array([(0,3),(1,3),(2,2),(3,1),
 pattern_size = 16
 K = 8
 
-def detect(img):
+def detect(img, nonMaxSur = True):
     quater = pattern_size/4
     #print img
     image = np.array(img)
@@ -68,13 +68,14 @@ def detect(img):
 
 
     def coner_cand(y,x,c):
-        print x,y,c
+        #print x,y,c
         count = 0
-        
+        if c == 0:
+            c = 1
         #darker
         if(c == -1):
             for i in range(pattern_size+K+1):
-                print count
+                #print count
                 if (circle_pix_dif(y,x,i%15,v) == 1):
                     count += 1
                     if (count > K):
@@ -85,13 +86,16 @@ def detect(img):
         #brighter
         if (c == 1):
             for i in range(pattern_size+K+1):
-                print count
+                #print count
                 if (circle_pix_dif(y,x,i%15,v) == -1):
                     count += 1
                     if (count > K):
                         return True
                 else:
                     count = 0
+        if (c ==1):
+            return coner_cand(y,x,-1)
+
         return False
 
 
@@ -99,39 +103,40 @@ def detect(img):
         for j in range(3,dim[1]-3):
             v = image[i][j]
             state = high_speed_test(i,j)
-            if (state!= 0):
-                if coner_cand(i,j,state):
-                    corners.append((i,j))
-    print corners
-    print '_______________________________'
+           # if (state!= 0):
+            if coner_cand(i,j,state):
+                corners.append((i,j))
+   # print corners
+    #print '_______________________________'
 
-    i = 0
-    """
-    while i < len(corners)-1:
-        c1 = corners[i]
-        c2 = corners[i+1]
-        if dist(c1,c2) < 10:
-            if corner_score(c1) > corner_score(c2):
-                corners.remove(c2)
-            else:
-                corners.remove(c1)
-        else:
-            i += 1
-            """
-
-    while i < len(corners)-1:
-        j = i+1
-        while j < len(corners):
+    if nonMaxSur:
+        i = 0
+        """
+        while i < len(corners)-1:
             c1 = corners[i]
-            c2 = corners[j]
+            c2 = corners[i+1]
             if dist(c1,c2) < 10:
                 if corner_score(c1) > corner_score(c2):
                     corners.remove(c2)
                 else:
                     corners.remove(c1)
             else:
-                 j += 1
-        i += 1
+                i += 1
+                """
+
+        while i < len(corners)-1:
+            j = i+1
+            while j < len(corners):
+                c1 = corners[i]
+                c2 = corners[j]
+                if dist(c1,c2) < 10:
+                    if corner_score(c1) > corner_score(c2):
+                        corners.remove(c2)
+                    else:
+                        corners.remove(c1)
+                else:
+                     j += 1
+            i += 1
 
                 
     return corners
