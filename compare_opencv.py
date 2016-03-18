@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from matplotlib import cbook 
 import feature_det as fd
 
-path = '/Users/cknierim/python/2.png'
+path = '/Users/cknierim/python/1.png'
 img = cv2.imread(path)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -18,7 +18,9 @@ kp = fast.detect(img,None)
 img2 = np.array(img)
 cv2.drawKeypoints(img, kp,img2, color=(0,255,0))
 
-print "Total Keypoints with nonmaxSuppression: ", len(kp)
+
+list_kp = [(k.pt[1],k.pt[0],k.response) for k in kp]
+print "Total Keypoints with nonmaxSuppression: ", len(kp),list_kp
 
 # Print all default params
 print "Threshold: ", fast.getThreshold()
@@ -34,9 +36,9 @@ list_kp = [(k.pt[1],k.pt[0]) for k in kp]
 # Disable nonmaxSuppression
 fast.setNonmaxSuppression(False)
 kp = fast.detect(gray,None)
-list_kp2 = [(k.pt[1],k.pt[0]) for k in kp]
+list_kp2 = [(k.pt[1],k.pt[0],k.response) for k in kp]
 print '########################################'
-print "Total Keypoints without nonmaxSuppression: ", len(kp) , list_kp2
+print "Total Keypoints without nonmaxSuppression: ", len(kp) ,list_kp2
 
 print'_____________________________________________'
 
@@ -45,18 +47,17 @@ cv2.drawKeypoints(img, kp,img3, color=(255,0,0))
 
 cv2.imwrite('fast_false.png',img3)
 
-image_file = cbook.get_sample_data(path)
-image = plt.imread(image_file)
+
 
 def get_point_list(l):
     b = []
     a = []
-    for (x,y) in l:
+    for (x,y,_) in l:
         a.append(x)
         b.append(y)
     return a,b
-
-my_points = fd.detect(gray,True)
+my_dect = fd.Detector()
+my_points = my_dect.detect(gray,False)
 
 print "Total Keypoints own impl without nonmaxSuppression: ", len(my_points) , my_points
 

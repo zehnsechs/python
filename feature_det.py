@@ -3,151 +3,187 @@ import matplotlib.pyplot as plt
 import matplotlib.cbook as cbook
 import math
 
-# threshold
-t = 10.0
+class Detector:
 
-#circle_pos
-p = np.array([(0,3),(1,3),(2,2),(3,1),
-                  (3,0),(3,-1),(2,-2),(1,-3),
-                  (0,-3),(-1,-3),(-2,-2),(-3,-1),
-                  (-3,0),(-3,1),(-2,2),(-1,3)])
+    # threshold
+    t = 10.0
 
-pattern_size = 16
-K = 8
+    #circle_pos
+    p = np.array([(0,3),(1,3),(2,2),(3,1),
+                      (3,0),(3,-1),(2,-2),(1,-3),
+                      (0,-3),(-1,-3),(-2,-2),(-3,-1),
+                      (-3,0),(-3,1),(-2,2),(-1,3)])
 
-def detect(img, nonMaxSur = True):
-    quater = pattern_size/4
-    #print img
-    image = np.array(img)
-    #print image
-    dim = image.shape 
-    if len(dim) != 2:
-        return []
+    pattern_size = 16
+    K = 8
 
-    corners = []
-    #pixel in circle centerd at x,y with index i (0-15) clockwise start at top 
-    #return  1 -> brighter
-    #		-1 -> darker
-    #		 0 -> eq/ out of range
-    def circle_pix_dif(y,x,i):
-        (yd,xd) = p[i]
-        col_d = image[y+yd][x+xd] - v
-       # print 'd', col_d
-        if  abs(col_d) <= t:
-            return 0;
-        else:
-            return np.sign(col_d)
-    
+    def detect(self,img, nonMaxSur = True):
+        quater = self.pattern_size/4
+        N = self.pattern_size+self.K+1
+        #print img
+        image = np.array(img)
+        #print image
+        dim = image.shape 
+        if len(dim) != 2:
+            return []
 
-
-    def high_speed_test(y,x):
-        d = 0
-        b = 0
-        p = []
-        result  = np.array([circle_pix_dif(y,x,0),circle_pix_dif(y,x,quater),
-            circle_pix_dif(y,x,2*quater),circle_pix_dif(y,x,3*quater)])
-        for i in range(4):
-            r =result[i]
-            if (r not in p) & ((r == result[(i+1)%4] )| (r == result[(i-1)%4])):
-                p.append(r)
-
-        if -1 in p:
-            return -1
-        if 1 in p:
-            return 1
-        else:
-            return 0
-
-   
-    def corner_score((y,x)):
-        sum = 0
-        for i in range(16):
-            sum += abs(image[y][x] - v)
-        return sum
-
-    def dist((x1,y1),(x2,y2)):
-        return math.sqrt((x1-x2)**2+(y1-y2)**2)
-
-
-
-    def coner_cand(y,x,c):
-        #print 'punkt',(y,x,c)
-        count = 0
-        #darker
-        if c == 0:
-            c =-1
-        if(c == -1):
-            for i in range(pattern_size+K+1):
-                #print count
-                if (circle_pix_dif(y,x,i%16) == -1):
-                    count += 1
-                    if (count > K):
-                        return True
-                else:
-                    count = 0
-
-        #brighter
-        if (c == 1):
-            for i in range(pattern_size+K+1):
-                
-                if (circle_pix_dif(y,x,i%16) == 1):
-                    count += 1
-                    if (count > K):
-                        return True
-                else:
-                    count = 0
-        if c == -1:
-            return coner_cand(y,x,1)
-
-        return False
-
-
-    for i in range(3,dim[0]-3):
-        for j in range(3,dim[1]-3):
-            v = int(image[i][j])
-            state = high_speed_test(i,j)
-            #print (i,j,state)
-            #if (state!= 0):
-            if coner_cand(i,j,state):
-                corners.append((i,j))
-   # print corners
-    #print '_______________________________'
-
-    if nonMaxSur:
-        i = 0
-        """
-        while i < len(corners)-1:
-            c1 = corners[i]
-            c2 = corners[i+1]
-            if dist(c1,c2) < 10:
-                if corner_score(c1) > corner_score(c2):
-                    corners.remove(c2)
-                else:
-                    corners.remove(c1)
+        corners = []
+        #pixel in circle centerd at x,y with index i (0-15) clockwise start at top 
+        #return  1 -> brighter
+        #		-1 -> darker
+        #		 0 -> eq/ out of range
+        def circle_pix_clas(y,x,i):
+            (yd,xd) = self.p[i]
+            col_d = image[y+yd][x+xd] - v
+           # print 'd', col_d
+            if  abs(col_d) <= self.t:
+                return 0;
             else:
-                i += 1
-                """
-        l = len(corners)  
+                return np.sign(col_d)
+        
+        def circle_pix_dif(y,x,i):
+            (yd,xd) = self.p[i]
+            return image[y+yd][x+xd] - v 
+          
+        
 
-        while i < l-1:
-            j = i+1
-            while j < l:
+
+        def high_speed_test(y,x):
+            d = 0
+            b = 0
+            p = []
+            result  = np.array([circle_pix_clas(y,x,0),circle_pix_clas(y,x,quater),
+                circle_pix_clas(y,x,2*quater),circle_pix_clas(y,x,3*quater)])
+            for i in range(4):
+                r =result[i]
+                if (r not in p) & ((r == result[(i+1)%4] )| (r == result[(i-1)%4])):
+                    p.append(r)
+
+            if -1 in p:
+                return -1
+            if 1 in p:
+                return 1
+            else:
+                return 0
+
+       
+        def corner_score((y,x)):
+            print (y,x)
+            d = np.empty((N))
+            a0 = self.t
+            for k in range(N):
+                d[k] = (circle_pix_dif(y,x,i%16))
+            
+            for k in range(0,16,2):
+                a = min(d[k+1],d[k+2])
+                a = min(a,d[k+3])
+                a = min(a,d[k+4])
+                a = min(a,d[k+5])
+                a = min(a,d[k+6])
+                a = min(a,d[k+7])
+                a = min(a,d[k+8])
+                print 'a',a 
+
+                a0 = max(a0, min(a,d[k]))
+                a0 = max(a0, min(a,d[k+9]))
+            b0 = -a0
+            for k in range(0,16,2):
+                b = max(d[k+1],d[k+2])
+                b = max(b,d[k+3])
+                b = max(b,d[k+4])
+                b = max(b,d[k+5])
+                b = max(b,d[k+6])
+                b = max(b,d[k+7])
+                b = max(b,d[k+8])
+                print 'b',b 
+
+                b0 = min(b0, max(b, d[k]))
+                b0 = min(b0, max(b, d[k+9]))
+            return -b0-1
+
+        def dist((x1,y1,z1),(x2,y2,z2)):
+            return math.sqrt((x1-x2)**2+(y1-y2)**2)
+
+
+
+        def coner_cand(y,x,c):
+            #print 'punkt',(y,x,c)
+            count = 0
+            #darker
+            #if c == 0:
+             #   c =-1
+            if(c == -1):
+                for i in range(N):
+                    #print count
+                    if (circle_pix_clas(y,x,i%16) == -1):
+                        count += 1
+                        if (count > self.K):
+                            return True
+                    else:
+                        count = 0
+
+            #brighter
+            if (c == 1):
+                for i in range(N):
+                    
+                    if (circle_pix_clas(y,x,i%16) == 1):
+                        count += 1
+                        if (count > self.K):
+                            return True
+                    else:
+                        count = 0
+           # if c == -1:
+            #    return coner_cand(y,x,1)
+
+            return False
+
+
+        for i in range(3,dim[0]-3):
+            for j in range(3,dim[1]-3):
+                v = int(image[i][j])
+                state = high_speed_test(i,j)
+                #print (i,j,state)
+                if (state!= 0):
+                    if coner_cand(i,j,state):
+                        corners.append((i,j,corner_score((i,j))))
+       # print corners
+        #print '_______________________________'
+
+        if nonMaxSur:
+            i = 0
+            """
+            while i < len(corners)-1:
                 c1 = corners[i]
-                c2 = corners[j]
-                print c1,c2,i,j
-                print dist(c1,c2)
-                if dist(c1,c2) < 7:
+                c2 = corners[i+1]
+                if dist(c1,c2) < 10:
                     if corner_score(c1) > corner_score(c2):
                         corners.remove(c2)
                     else:
                         corners.remove(c1)
-                        j = i+1
-                    l -= 1
                 else:
-                     j += 1
-            i += 1
+                    i += 1
+                    """
+            l = len(corners)  
 
-                
-    return corners
+            while i < l-1:
+                j = i+1
+                while j < l:
+                    c1 = corners[i]
+                    c2 = corners[j]
+                    #print c1,c2,i,j
+                    #print dist(c1,c2)
+                    if dist(c1,c2) < 7:
+                        if c1[2]> c2[2]:
+                            corners.remove(c2)
+                        else:
+                            corners.remove(c1)
+                            j = i+1
+                        l -= 1
+                    else:
+                         j += 1
+                i += 1
+
+                    
+        return corners
 
 
