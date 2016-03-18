@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from matplotlib import cbook 
 import feature_det as fd
 
-path = '/Users/cknierim/python/1.png'
+path = '/Users/cknierim/python/png1.png'
 img = cv2.imread(path)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -52,14 +52,14 @@ cv2.imwrite('fast_false.png',img3)
 def get_point_list(l):
     b = []
     a = []
-    for (x,y,_) in l:
+    for (x,y,z) in l:
         a.append(x)
         b.append(y)
     return a,b
 my_dect = fd.Detector()
-my_points = my_dect.detect(gray,False)
+my_points = my_dect.detect(gray,True)
 
-print "Total Keypoints own impl without nonmaxSuppression: ", len(my_points) , my_points
+print "Total Keypoints own impl with nonmaxSuppression: ", len(my_points) , my_points
 
 
 
