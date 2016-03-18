@@ -24,6 +24,8 @@ class Detector:
         image = np.array(img)
         #print image
         dim = image.shape 
+        scores = np.zeros(dim)
+
         if len(dim) != 2:
             return []
 
@@ -72,30 +74,22 @@ class Detector:
             d = np.empty((N))
             a0 = self.t
             for k in range(N):
-                d[k] = (circle_pix_dif(y,x,i%16))
+                d[k] = (circle_pix_dif(y,x,k%16))
             
             for k in range(0,16,2):
                 a = min(d[k+1],d[k+2])
-                a = min(a,d[k+3])
-                a = min(a,d[k+4])
-                a = min(a,d[k+5])
-                a = min(a,d[k+6])
-                a = min(a,d[k+7])
-                a = min(a,d[k+8])
-                print 'a',a 
+                for l in range(3,self.K):
+                    a = min(a,d[k+l])
+               # print 'a',a 
 
                 a0 = max(a0, min(a,d[k]))
-                a0 = max(a0, min(a,d[k+9]))
+                a0 = max(a0, min(a,d[k+self.K]))
             b0 = -a0
             for k in range(0,16,2):
                 b = max(d[k+1],d[k+2])
-                b = max(b,d[k+3])
-                b = max(b,d[k+4])
-                b = max(b,d[k+5])
-                b = max(b,d[k+6])
-                b = max(b,d[k+7])
-                b = max(b,d[k+8])
-                print 'b',b 
+                for l in range(3,self.K):
+                     b = max(b,d[k+l])
+                #print 'b',b 
 
                 b0 = min(b0, max(b, d[k]))
                 b0 = min(b0, max(b, d[k+9]))
@@ -145,7 +139,8 @@ class Detector:
                 #print (i,j,state)
                 if (state!= 0):
                     if coner_cand(i,j,state):
-                        corners.append((i,j,corner_score((i,j))))
+                        corners.append((i,j))
+                        scores[i][j] = corner_score((i,j))
        # print corners
         #print '_______________________________'
 
@@ -163,27 +158,18 @@ class Detector:
                 else:
                     i += 1
                     """
-            l = len(corners)  
-
-            while i < l-1:
-                j = i+1
-                while j < l:
-                    c1 = corners[i]
-                    c2 = corners[j]
-                    #print c1,c2,i,j
-                    #print dist(c1,c2)
-                    if dist(c1,c2) < 7:
-                        if c1[2]> c2[2]:
-                            corners.remove(c2)
-                        else:
-                            corners.remove(c1)
-                            j = i+1
-                        l -= 1
-                    else:
-                         j += 1
-                i += 1
+            result = []
+            print scores
+            for (y,x) in corners:
+                if ((scores[y][x] < scores[y-1][x]) | (scores[y][x] < scores[y-1][x-1]) | 
+                    (scores[y][x] < scores[y][x-1]) | (scores[y][x] < scores[y+1][x-1]) |
+                    (scores[y][x] < scores[y+1][x]) | (scores[y][x] < scores[y+1][x+1]) |
+                    (scores[y][x] < scores[y][x+1]) | (scores[y][x] < scores[y-1][x+1])):
+                    pass
+                else:
+                    result.append((y,x,scores[y][x]))
 
                     
-        return corners
+        return result
 
 
