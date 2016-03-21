@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from matplotlib import cbook 
 import feature_det as fd
 
-path = '/Users/cknierim/python/png1.png'
+path = '/Users/cknierim/python/14.png'
 img = cv2.imread(path)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -57,7 +57,7 @@ def get_point_list(l):
         b.append(y)
     return a,b
 my_dect = fd.Detector()
-my_points = my_dect.detect(gray,True)
+my_points = my_dect.detect(gray,True,False)
 
 print "Total Keypoints own impl with nonmaxSuppression: ", len(my_points) , my_points
 
@@ -70,26 +70,29 @@ plt.savefig('my_fig.png')
 
 points = []
 
-for p in list_kp:
+for p in list_kp2:
     if p in my_points:
         my_points.remove(p)
     else:
         points.append(p)
+
 """
 print 'nicht bei mir:---------------------'
-for (y,x) in points:
+for (y,x,z) in points:
     print 'Punkt' ,(y,x) , gray[y][x]
     for i in range(16):
-        (yd,xd) = fd.p[i]
+        (yd,xd) = my_dect.p[i]
         print '     ',i, gray[y+yd][x+xd]
     print '------------------'
+    
 
 
 print 'nur bei mir: --------------------------------'
-for (y,x) in my_points:
+for (y,x,z) in my_points:
     print 'Punkt' ,(y,x) , gray[y][x]
+       
     for i in range(16):
-        (yd,xd) = fd.p[i]
+        (yd,xd) = my_dect.p[i]
         print '     ',i, gray[y+yd][x+xd]
     print '------------------'
 

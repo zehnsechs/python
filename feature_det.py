@@ -17,7 +17,7 @@ class Detector:
     pattern_size = 16
     K = 8
 
-    def detect(self,img, nonMaxSur = True):
+    def detect(self,img, nonMaxSur = True, slow = True):
         quater = self.pattern_size/4
         N = self.pattern_size+self.K+1
         #print img
@@ -58,10 +58,13 @@ class Detector:
                 circle_pix_clas(y,x,2*quater),circle_pix_clas(y,x,3*quater)])
             for i in range(4):
                 r =result[i]
-                if (r not in p) & ((r == result[(i+1)%4] )| (r == result[(i-1)%4])):
+                if (r not in p) & ((r == result[(i+1)%4])| (r == result[(i-1)%4])):
                     p.append(r)
 
             if -1 in p:
+                if slow:
+                    if 1 in p:
+                        return 2
                 return -1
             if 1 in p:
                 return 1
@@ -70,35 +73,29 @@ class Detector:
 
        
         def corner_score((y,x)):
-            print (y,x)
-            d = np.empty((N))
+            #print (y,x,v)
             a0 = self.t
+            d = np.empty((N))
             for k in range(N):
-                d[k] = (circle_pix_dif(y,x,k%16))
-            
+                d[k] = (circle_pix_dif(i,j,k%16))
+            #print d
             for k in range(0,16,2):
                 a = min(d[k+1],d[k+2])
-                for l in range(3,self.K):
+                for l in range(3,self.K+1):
                     a = min(a,d[k+l])
                # print 'a',a 
-
                 a0 = max(a0, min(a,d[k]))
-                a0 = max(a0, min(a,d[k+self.K]))
+                a0 = max(a0, min(a,d[k+self.K+1]))
             b0 = -a0
             for k in range(0,16,2):
                 b = max(d[k+1],d[k+2])
-                for l in range(3,self.K):
+                for l in range(3,self.K+1):
                      b = max(b,d[k+l])
                 #print 'b',b 
 
                 b0 = min(b0, max(b, d[k]))
-                b0 = min(b0, max(b, d[k+9]))
+                b0 = min(b0, max(b, d[k+self.K+1]))
             return -b0-1
-
-        def dist((x1,y1,z1),(x2,y2,z2)):
-            return math.sqrt((x1-x2)**2+(y1-y2)**2)
-
-
 
         def coner_cand(y,x,c):
             #print 'punkt',(y,x,c)
@@ -109,7 +106,9 @@ class Detector:
             if(c == -1):
                 for i in range(N):
                     #print count
+                    #if (d[i] < -self.t):
                     if (circle_pix_clas(y,x,i%16) == -1):
+
                         count += 1
                         if (count > self.K):
                             return True
@@ -117,15 +116,41 @@ class Detector:
                         count = 0
 
             #brighter
-            if (c == 1):
+            elif (c == 1):
                 for i in range(N):
                     
+                    #if (d[i] > self.t):
                     if (circle_pix_clas(y,x,i%16) == 1):
+
                         count += 1
                         if (count > self.K):
                             return True
                     else:
                         count = 0
+
+            elif (c == 2):
+                #print (y,x)
+                for i in range(N):
+                    #print -1, count
+                    if (circle_pix_clas(y,x,i%16) == -1):
+                        count += 1
+                        if (count > self.K):
+                           # print -1
+                            return True
+                    else:
+                        count = 0
+                count = 0        
+
+                for i in range(N):
+                   # print 1, count
+                    if (d[i] > self.t):
+                        count += 1
+                        if (count > self.K):
+                            #print 1
+                            return True
+                    else:
+                        count = 0
+
            # if c == -1:
             #    return coner_cand(y,x,1)
 
@@ -138,12 +163,15 @@ class Detector:
                 state = high_speed_test(i,j)
                 #print (i,j,state)
                 if (state!= 0):
+                    
                     if coner_cand(i,j,state):
-                        corners.append((i,j))
+                        corners.append((i,j,0))
                         scores[i][j] = corner_score((i,j))
+                        #print scores[i][j]
        # print corners
         #print '_______________________________'
 
+        print 'found' , len(corners)
         if nonMaxSur:
             i = 0
             """
@@ -159,8 +187,8 @@ class Detector:
                     i += 1
                     """
             result = []
-            print scores
-            for (y,x) in corners:
+            #print scores
+            for (y,x,_) in corners:
                 if ((scores[y][x] < scores[y-1][x]) | (scores[y][x] < scores[y-1][x-1]) | 
                     (scores[y][x] < scores[y][x-1]) | (scores[y][x] < scores[y+1][x-1]) |
                     (scores[y][x] < scores[y+1][x]) | (scores[y][x] < scores[y+1][x+1]) |
@@ -169,6 +197,15 @@ class Detector:
                 else:
                     result.append((y,x,scores[y][x]))
 
+
+                """((scores[y][x] >= scores[y-1][x]) & (scores[y][x] >= scores[y-1][x-1]) & 
+                    (scores[y][x] >= scores[y][x-1]) & (scores[y][x] >= scores[y+1][x-1]) &
+                    (scores[y][x] >= scores[y+1][x]) & (scores[y][x] >= scores[y+1][x+1]) &
+                    (scores[y][x] >= scores[y][x+1]) & (scores[y][x] >= scores[y-1][x+1])):
+                    result.append((y,x,scores[y][x])) """
+                scores[y][x] += 1
+        else:
+            result = corners
                     
         return result
 
