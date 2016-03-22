@@ -189,6 +189,7 @@ class Detector:
             result = []
             #print scores
             for (y,x,_) in corners:
+                """
                 if ((scores[y][x] < scores[y-1][x]) | (scores[y][x] < scores[y-1][x-1]) | 
                     (scores[y][x] < scores[y][x-1]) | (scores[y][x] < scores[y+1][x-1]) |
                     (scores[y][x] < scores[y+1][x]) | (scores[y][x] < scores[y+1][x+1]) |
@@ -196,14 +197,15 @@ class Detector:
                     pass
                 else:
                     result.append((y,x,scores[y][x]))
-
-
-                """((scores[y][x] >= scores[y-1][x]) & (scores[y][x] >= scores[y-1][x-1]) & 
-                    (scores[y][x] >= scores[y][x-1]) & (scores[y][x] >= scores[y+1][x-1]) &
-                    (scores[y][x] >= scores[y+1][x]) & (scores[y][x] >= scores[y+1][x+1]) &
-                    (scores[y][x] >= scores[y][x+1]) & (scores[y][x] >= scores[y-1][x+1])):
-                    result.append((y,x,scores[y][x])) """
                 scores[y][x] += 1
+"""
+
+                if ((scores[y][x] > scores[y-1][x]) & (scores[y][x] > scores[y-1][x-1]) & 
+                    (scores[y][x] > scores[y][x-1]) & (scores[y][x] > scores[y+1][x-1]) &
+                    (scores[y][x] > scores[y+1][x]) & (scores[y][x] > scores[y+1][x+1]) &
+                    (scores[y][x] > scores[y][x+1]) & (scores[y][x] > scores[y-1][x+1])):
+                        result.append((y,x,scores[y][x])) 
+                
         else:
             result = corners
                     
