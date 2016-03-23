@@ -1,5 +1,6 @@
 import numpy as np 
 from skimage import transform as tf
+import cv2
 
 
 class Descriptor:   
@@ -7,8 +8,7 @@ class Descriptor:
     patch_size = 48
     threshold = 5
     kernel = 9
-    key_points = 
-[[
+    key_points = [[
 [-1, -2, -1, 7],
 [-1, -14, 3, -3],
 [-2, 1, 2, 11],
@@ -155,35 +155,63 @@ class Descriptor:
 
 
     def describe(self,features,img):
-        patch_rad = selfpatch_size/2
+        patch_rad = self.patch_size/2
         nr_kp = len(features)
-        int_img = tf.integral_image(img)
-        i = 0
         (heigth,width) = img.shape
-        img = img
-        half_ker = kernel/2
+        int_img = tf.integral_image(img)
+        test = cv2.integral(img)
+        like_cv_img = np.concatenate((np.array([[0]*(heigth+1)]).T,np.concatenate(([[0]*width],int_img),axis = 0)),axis = 1)
+        i = 0
+        print (like_cv_img == test).all()
+        like_cv_img = np.int32(like_cv_img)
+        #print like_cv_img
+        #print test
+        print heigth,width
+        print nr_kp
+        half_ker = self.kernel/2
+        print half_ker
 
-        def filter_fp():
-            if(width < self.patch_size+self.kernel-1) or (heigth < self.patch_size+self.kernel-1):
-                features = []
-            for (fy,fx,res) in features:
-                if (fx < patch_rad) | (fx > heigth-(self.patch_rad)+1) | (fy < self.patch_rad) | (fy > width-(self.patch_rad+1)):
-                    features.remove((fy,fx,res))
 
         def sum(y,x):
-            img_x = fx + x
-            img_y = fy + y
-            return tf.integrate(int_img,img_y + HALF_KERNEL + 1, img_x + HALF_KERNEL + 1, img_y - HALF_KERNEL + 1, img_x - HALF_KERNEL + 1) 
+            img_x = int(fx+0.5 + x)
+            img_y = int(fy+0.5 + y)
+            #print fy,fx,img_y,img_x
+            #print tf.integrate(int_img,img_y + half_ker , img_x + half_ker , img_y - half_ker +1, img_x - half_ker +1) 
+            #print test.dtype ,test[img_y + half_ker + 1, img_x + half_ker + 1] ,  int(test[img_y + half_ker + 1, img_x - half_ker ]) , int(test[img_y - half_ker , img_x + half_ker + 1]) ,  int(test[img_y - half_ker , img_x - half_ker ])
+            #print int_img.dtype ,int_img[img_y + half_ker + 1, img_x + half_ker + 1] ,  int(int_img[img_y + half_ker + 1, img_x - half_ker ]) , int(int_img[img_y - half_ker , img_x + half_ker + 1]) ,  int(int_img[img_y - half_ker , img_x - half_ker ])
+            #print int(test[img_y + half_ker + 1, img_x + half_ker + 1]) -  int(test[img_y + half_ker + 1, img_x - half_ker ]) - int(test[img_y - half_ker , img_x + half_ker + 1]) +  int(test[img_y - half_ker , img_x - half_ker ])
+            #print '-----------------------'
+            return int(like_cv_img[img_y + half_ker + 1, img_x + half_ker + 1]) -  int(like_cv_img[img_y + half_ker + 1, img_x - half_ker ]) - int(like_cv_img[img_y - half_ker , img_x + half_ker + 1]) +  int(like_cv_img[img_y - half_ker , img_x - half_ker ])
+        
+        border = patch_rad+half_ker
 
-        filter_fp()
-        result = np.zeros((len(features,self.size),dtype = int16)
-        for (p,(fy,fx,res)) in list(enumerate(features)):
+        if(width < 2*border) or (heigth < 2*border):
+            return [],[]
+
+        new_feat = []
+        for i in range(nr_kp):
+            (fy,fx,res) = features[i]
+            #print border ,fy,fx
+            if (fx < border) | (fx > width-border-1) | (fy < border) | (fy > heigth-border-1):
+              pass
+            else:new_feat.append((fy,fx,res))
+
+
+
+
+        print len(new_feat)
+        result = np.zeros((len(new_feat),self.size),dtype = np.uint16)
+        for (p,(fy,fx,res)) in list(enumerate(new_feat)):
+           # print fy,fx
             for i in range(16):
                 kp = self.key_points[i]
+                #print kp
                 for j in range(8):
                     [x1,y1,x2,y2] = kp[j]
-                    result[p][i] += np.leftshift(sum(y1,x1) < sum(y2,x2),(7-i))
-        return features , np.delete(result,range(len(features),nr_kp),0)
+                    #print p,i,j,sum(y1,x1) , sum(y2,x2)
+                    result[p][i] += np.left_shift(sum(y1,x1) < sum(y2,x2),(7-j))
+
+        return new_feat , np.delete(result,range(len(new_feat),nr_kp),0)
 
     def match(self,feat1,des1,feat2,des2):
         def dist(v1,v2):

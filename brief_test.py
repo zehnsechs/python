@@ -5,7 +5,7 @@ import cv2
 import feature_det as fd
 from matplotlib import pyplot as plt
 
-path = '/Users/cknierim/python/5.png'
+path = '/Users/cknierim/python/lenagray.png'
 img = cv2.imread(path)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -21,8 +21,8 @@ my_points2 = my_dect.detect(gray2,True)
 my_des = brief.Descriptor()
 new_f, t = my_des.describe(my_points,gray)
 
-print t.shape
-print len(new_f)
+print t
+print new_f,len(new_f)
 # Initiate FAST detector
 fast = cv2.FeatureDetector_create("FAST")
 
@@ -31,14 +31,16 @@ brief = cv2.DescriptorExtractor_create("BRIEF")
 brief.setInt('bytes',16)
 
 # find the keypoints with FAST
-kp = fast.detect(gray2,None)
+kp = fast.detect(gray,None)
 
 # compute the descriptors with BRIEF
-kp, des = brief.compute(img, kp)
+kp, des = brief.compute(gray, kp)
 
 print brief.getInt('bytes')
-print des.shape
-print len(kp)
+print des
+print [(k.pt[1],k.pt[0]) for k in kp],len(kp)
+
+print (t == des).all()
 
 def get_point_list(l):
     b = []
