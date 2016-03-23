@@ -143,7 +143,7 @@ class Detector:
 
                 for i in range(N):
                    # print 1, count
-                    if (d[i] > self.t):
+                    if (circle_pix_clas(y,x,i%16) == 1):
                         count += 1
                         if (count > self.K):
                             #print 1
