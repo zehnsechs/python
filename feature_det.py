@@ -97,6 +97,29 @@ class Detector:
                 b0 = min(b0, max(b, d[k+self.K+1]))
             return -b0-1
 
+        def harris_score((y,x)):
+            r = self.block/2
+            a = 0
+            b = 0
+            c = 0
+            scale = float(1)/((1 << 2) * self.block * float(255))
+            scale_sq_sq = scale * scale * scale * scale
+            sum = 0
+
+            for v in range(7):
+                for u in range(7):
+                    x0 = x - r + u
+                    y0 = y - r + v
+                    Ix = (int(image[y0][x0+1]) - int(image[y0][x0-1]))*2 + (int(image[y0-1][x0+1]) - int(image[y0-1][x0-1])) + (int(image[y0+1][x0+1]) - int(image[y0+1][x0-1]))
+                    Iy = (int(image[y0+1][x0])- int(image[y0-1][x0]))*2 + (int(image[y0+1][x0-1]) - int(image[y0-1][x0-1])) + (int(image[y0+1][x0+1])- int(image[y0-1][x0+1]))
+                    a += Ix*Ix
+                    b += Iy*Iy
+                    c += Ix*Iy
+            response = (float(a) * float(b) - float(c) * float(c) - self.HARRIS_K * (float(a) + float(b)) * (float(a) + float(b)))*scale_sq_sq
+           
+            return response
+
+
         def coner_cand(y,x,c):
             #print 'punkt',(y,x,c)
             count = 0
@@ -157,8 +180,8 @@ class Detector:
             return False
 
 
-        for i in range(3,dim[0]-3):
-            for j in range(3,dim[1]-3):
+        for i in range(3,dim[0]-4):
+            for j in range(3,dim[1]-4):
                 v = int(image[i][j])
                 state = high_speed_test(i,j)
                 #print (i,j,state)
@@ -166,9 +189,9 @@ class Detector:
                     
                     if coner_cand(i,j,state):
                         corners.append((i,j,0))
-                        scores[i][j] = corner_score((i,j))
+                        scores[i][j] = harris_score((i,j))
                         #print scores[i][j]
-       # print corners
+        print scores
         #print '_______________________________'
 
         print 'found' , len(corners)
@@ -196,16 +219,16 @@ class Detector:
                     (scores[y][x] < scores[y][x+1]) | (scores[y][x] < scores[y-1][x+1])):
                     pass
                 else:
-                    result.append((y,x,scores[y][x]))
-                scores[y][x] += 1
-"""
+                    result.append((y,x,scores[y][x],0))
+                #scores[y][x] += 1
+                """
 
                 if ((scores[y][x] > scores[y-1][x]) & (scores[y][x] > scores[y-1][x-1]) & 
                     (scores[y][x] > scores[y][x-1]) & (scores[y][x] > scores[y+1][x-1]) &
                     (scores[y][x] > scores[y+1][x]) & (scores[y][x] > scores[y+1][x+1]) &
                     (scores[y][x] > scores[y][x+1]) & (scores[y][x] > scores[y-1][x+1])):
                         result.append((y,x,scores[y][x],0)) 
-                
+                            
         else:
             result = corners
 
@@ -236,30 +259,9 @@ class Detector:
         if (comp_angle):
             result = map(lambda k: angle(k),result) 
 
-        def harris_score((y,x,r,an)):
-            r = self.block/2
-            a = 0
-            b = 0
-            c = 0
-            scale = float(1)/((1 << 2) * self.block * float(255))
-            scale_sq_sq = scale * scale * scale * scale
-            sum = 0
-
-            for v in range(7):
-                for u in range(7):
-                    x0 = x - r + u
-                    y0 = y - r + v
-                    Ix = (int(image[y0][x0+1]) - int(image[y0][x0-1]))*2 + (int(image[y0-1][x0+1]) - int(image[y0-1][x0-1])) + (int(image[y0+1][x0+1]) - int(image[y0+1][x0-1]))
-                    Iy = (int(image[y0+1][x0])- int(image[y0-1][x0]))*2 + (int(image[y0+1][x0-1]) - int(image[y0-1][x0-1])) + (int(image[y0+1][x0+1])- int(image[y0-1][x0+1]))
-                    a += Ix*Ix
-                    b += Iy*Iy
-                    c += Ix*Iy
-            response = (float(a) * float(b) - float(c) * float(c) - self.HARRIS_K * (float(a) + float(b)) * (float(a) + float(b)))*scale_sq_sq
-           
-            return (y,x,response,an)
-
+        
         if use_harris:
-            result = map(lambda k: harris_score(k),result)
+            result = map(lambda (y,x,r,an): (y,x,harris_score((y,x)),an),result)
 
 
         if (len(result) > max_count):
