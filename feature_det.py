@@ -1,4 +1,4 @@
-import numpy as np 
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cbook as cbook
 import math
@@ -17,7 +17,7 @@ class Detector:
     pattern_size = 16
     K = 8
 
-    def detect(self,img, nonMaxSur = True, slow = True):
+    def detect(self,img, nonMaxSur = True, slow = True, angle = False):
         quater = self.pattern_size/4
         N = self.pattern_size+self.K+1
         #print img
@@ -46,9 +46,6 @@ class Detector:
         def circle_pix_dif(y,x,i):
             (yd,xd) = self.p[i]
             return image[y+yd][x+xd] - v 
-          
-        
-
 
         def high_speed_test(y,x):
             d = 0
@@ -208,7 +205,40 @@ class Detector:
                 
         else:
             result = corners
-                    
+
+        u_max=[3,3,2,1]
+        def angle((y,x,r)):
+            m_01 = 0
+            m_10 = 0
+
+            for u in range(-3,4):
+                m_10 += i*image[y][x+u]
+
+            for v in range(1,4):
+                v_sum = 0
+                d = u_max[v]
+                for u in range(-d,d+1):
+                    val_plus = int(image[y+v][x+u])
+                    val_minus = int(image[y-v][x+u])
+                    v_sum += (val_plus - val_minus)
+                    m_10 += u*(val_plus - val_minus)
+                m_01 += v*v_sum
+            a = math.atan2(m_01,m_10)
+            return (y,x,r,a)
+
+
+        if (angle):
+            
+            result = map(lambda k: angle(k),result) 
+
+
+
+
+
+
+
+
+
         return result
 
 
