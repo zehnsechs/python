@@ -2,11 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cbook as cbook
 import math
+import heapq
 
 class Detector:
 
     # threshold
-    t = 10.0
+    t = 20.0
 
     #circle_pos
     p = np.array([(0,3),(1,3),(2,2),(3,1),
@@ -16,8 +17,10 @@ class Detector:
 
     pattern_size = 16
     K = 8
+    HARRIS_K = 0.04
+    block = 7
 
-    def detect(self,img, nonMaxSur = True, slow = True, angle = False):
+    def detect(self,img,max_count = 500, nonMaxSur = True, slow = True, comp_angle = False,use_harris = False):
         quater = self.pattern_size/4
         N = self.pattern_size+self.K+1
         #print img
@@ -201,18 +204,19 @@ class Detector:
                     (scores[y][x] > scores[y][x-1]) & (scores[y][x] > scores[y+1][x-1]) &
                     (scores[y][x] > scores[y+1][x]) & (scores[y][x] > scores[y+1][x+1]) &
                     (scores[y][x] > scores[y][x+1]) & (scores[y][x] > scores[y-1][x+1])):
-                        result.append((y,x,scores[y][x])) 
+                        result.append((y,x,scores[y][x],0)) 
                 
         else:
             result = corners
 
         u_max=[3,3,2,1]
-        def angle((y,x,r)):
+
+        def angle((y,x,r,_)):
             m_01 = 0
             m_10 = 0
 
             for u in range(-3,4):
-                m_10 += i*image[y][x+u]
+                m_10 += u*image[y][x+u]
 
             for v in range(1,4):
                 v_sum = 0
@@ -221,22 +225,45 @@ class Detector:
                     val_plus = int(image[y+v][x+u])
                     val_minus = int(image[y-v][x+u])
                     v_sum += (val_plus - val_minus)
-                    m_10 += u*(val_plus - val_minus)
+                    m_10 += u*(val_plus + val_minus)
                 m_01 += v*v_sum
-            a = math.atan2(m_01,m_10)
+            a = math.atan2(float(m_01),float(m_10))
+            if a < 0:
+                a += math.pi*2
+            a = a*360/(2*math.pi)
             return (y,x,r,a)
 
-
-        if (angle):
-            
+        if (comp_angle):
             result = map(lambda k: angle(k),result) 
 
+        def harris_score((y,x,r,an)):
+            r = self.block/2
+            a = 0
+            b = 0
+            c = 0
+            scale = float(1)/((1 << 2) * self.block * float(255))
+            scale_sq_sq = scale * scale * scale * scale
+            sum = 0
+
+            for v in range(7):
+                for u in range(7):
+                    x0 = x - r + u
+                    y0 = y - r + v
+                    Ix = (int(image[y0][x0+1]) - int(image[y0][x0-1]))*2 + (int(image[y0-1][x0+1]) - int(image[y0-1][x0-1])) + (int(image[y0+1][x0+1]) - int(image[y0+1][x0-1]))
+                    Iy = (int(image[y0+1][x0])- int(image[y0-1][x0]))*2 + (int(image[y0+1][x0-1]) - int(image[y0-1][x0-1])) + (int(image[y0+1][x0+1])- int(image[y0-1][x0+1]))
+                    a += Ix*Ix
+                    b += Iy*Iy
+                    c += Ix*Iy
+            response = (float(a) * float(b) - float(c) * float(c) - self.HARRIS_K * (float(a) + float(b)) * (float(a) + float(b)))*scale_sq_sq
+           
+            return (y,x,response,an)
+
+        if use_harris:
+            result = map(lambda k: harris_score(k),result)
 
 
-
-
-
-
+        if (len(result) > max_count):
+            result = heapq.nlargest(max_count,result,key=(lambda x: x[2]))
 
 
         return result
