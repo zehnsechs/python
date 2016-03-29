@@ -22,7 +22,7 @@ my_des = brief.Descriptor()
 new_f, t = my_des.describe(my_points,gray)
 
 print t
-print new_f,len(new_f)
+#print new_f,len(new_f)
 # Initiate FAST detector
 fast = cv2.FeatureDetector_create("FAST")
 
@@ -38,7 +38,7 @@ kp, des = brief.compute(gray, kp)
 
 print brief.getInt('bytes')
 print des
-print [(k.pt[1],k.pt[0]) for k in kp],len(kp)
+#print [(k.pt[1],k.pt[0]) for k in kp],len(kp)
 
 print (t == des).all()
 

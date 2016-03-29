@@ -1,6 +1,7 @@
 import numpy as np 
 from skimage import transform as tf
 import cv2
+import math
 
 
 class Descriptor:   
@@ -154,7 +155,7 @@ class Descriptor:
 [9, 3, 2, 8]]]
 
 
-    def describe(self,features,img):
+    def describe(self,features,img,use_orient):
         patch_rad = self.patch_size/2
         nr_kp = len(features)
         (heigth,width) = img.shape
@@ -172,7 +173,22 @@ class Descriptor:
         print half_ker
 
 
-        def sum(y,x):
+        def sum(y,x,(s_an,c_an)):
+            if use_orient:
+                rx = int(float(x)*c_an - float(y)*s_an)
+                ry = int(float(x)*s_an + float(y)*c_an)
+
+                if (rx > 24): 
+                    rx = 24 
+                if (rx < -24):
+                    rx = -24
+                if (ry > 24):
+                    ry = 24
+                if (ry < -24):
+                    ry = -24;
+                x = rx
+                y = ry
+
             img_x = int(fx+0.5 + x)
             img_y = int(fy+0.5 + y)
             #print fy,fx,img_y,img_x
@@ -190,18 +206,24 @@ class Descriptor:
 
         new_feat = []
         for i in range(nr_kp):
-            (fy,fx,res) = features[i]
+            (fy,fx,res,an) = features[i]
             #print border ,fy,fx
             if (fx < border) | (fx > width-border-1) | (fy < border) | (fy > heigth-border-1):
               pass
-            else:new_feat.append((fy,fx,res))
+            else:new_feat.append((fy,fx,res,an))
 
 
 
 
         print len(new_feat)
         result = np.zeros((len(new_feat),self.size),dtype = np.uint16)
-        for (p,(fy,fx,res)) in list(enumerate(new_feat)):
+        for (p,(fy,fx,res,an)) in list(enumerate(new_feat)):
+            sin_an = 0
+            cos_an = 0
+            if use_orient:
+                rad_an = an*math.pi/float(180)
+                sin_an = math.sin(rad_an)
+                cos_an = math.cos(rad_an)
            # print fy,fx
             for i in range(16):
                 kp = self.key_points[i]
@@ -209,27 +231,33 @@ class Descriptor:
                 for j in range(8):
                     [x1,y1,x2,y2] = kp[j]
                     #print p,i,j,sum(y1,x1) , sum(y2,x2)
-                    result[p][i] += np.left_shift(sum(y1,x1) < sum(y2,x2),(7-j))
+                    result[p][i] += np.left_shift(sum(y1,x1,(sin_an,cos_an)) < sum(y2,x2,(sin_an,cos_an)),(7-j))
 
         return new_feat , np.delete(result,range(len(new_feat),nr_kp),0)
 
     def match(self,feat1,des1,feat2,des2):
         def dist(v1,v2):
-            d = 0
-            for k in range(self.size):
-                if (v1[k] != v2[k]):
-                    d +=1
-            return d
-
+            b = (np.unpackbits(v1.view(np.uint8)) == np.unpackbits(v2.view(np.uint8)))
+            return sum(np.invert(b))
+        print des1.dtype
         result = []
+        
         for i in range(len(des1)):
-            if des1[i].any() :
-                for j in range(len(des2)):
-                    d = dist(des1[i],des2[j])
-                    if  d < self.threshold :
+            for j in range(len(des2)):
+                insert = True
+                d = dist(des1[i],des2[j])
+                if  d < self.threshold :
+                    for k in range(len(result)):
+                        if feat1[i] == result[k][0]:
+                            if result[k][2] > d:
+                                del result[k]
+                            else:
+                                insert = False
+                    if insert:    
                         result.append((feat1[i],feat2[j],d))
-                        print d
-        return result
+                            
+                    print d
+        return result 
 
     
  

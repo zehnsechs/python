@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cbook as cbook
 import math
 import heapq
+import time
 
 class Detector:
 
@@ -19,8 +20,12 @@ class Detector:
     K = 8
     HARRIS_K = 0.04
     block = 7
+    edge_thresh = 4
+    sigma = float(2)
+    gaus_fact = float(1)/(math.sqrt(2*math.pi)*sigma)
 
-    def detect(self,img,max_count = 500, nonMaxSur = True, slow = True, comp_angle = False,use_harris = False):
+    def detect(self,img,max_count = 500, nonMaxSur = True, slow = True, comp_angle = False):
+        start_time = time.time()
         quater = self.pattern_size/4
         N = self.pattern_size+self.K+1
         #print img
@@ -104,19 +109,20 @@ class Detector:
             c = 0
             scale = float(1)/((1 << 2) * self.block * float(255))
             scale_sq_sq = scale * scale * scale * scale
-            sum = 0
+            
 
-            for v in range(7):
-                for u in range(7):
-                    x0 = x - r + u
-                    y0 = y - r + v
+            for v in range(-3,4):
+                for u in range(-3,4):
+                    weight = self.gaus_fact*(math.exp(-(v*v+u*u)/(2*self.sigma*self.sigma)))
+                    x0 = x + u
+                    y0 = y + v
                     Ix = (int(image[y0][x0+1]) - int(image[y0][x0-1]))*2 + (int(image[y0-1][x0+1]) - int(image[y0-1][x0-1])) + (int(image[y0+1][x0+1]) - int(image[y0+1][x0-1]))
                     Iy = (int(image[y0+1][x0])- int(image[y0-1][x0]))*2 + (int(image[y0+1][x0-1]) - int(image[y0-1][x0-1])) + (int(image[y0+1][x0+1])- int(image[y0-1][x0+1]))
-                    a += Ix*Ix
-                    b += Iy*Iy
-                    c += Ix*Iy
+                    a += weight*Ix*Ix
+                    b += weight*Iy*Iy
+                    c += weight*Ix*Iy
             response = (float(a) * float(b) - float(c) * float(c) - self.HARRIS_K * (float(a) + float(b)) * (float(a) + float(b)))*scale_sq_sq
-           
+            #print response
             return response
 
 
@@ -180,18 +186,19 @@ class Detector:
             return False
 
 
-        for i in range(3,dim[0]-4):
-            for j in range(3,dim[1]-4):
+        for i in range(4,dim[0]-4):
+            for j in range(4,dim[1]-4):
                 v = int(image[i][j])
                 state = high_speed_test(i,j)
                 #print (i,j,state)
                 if (state!= 0):
                     
                     if coner_cand(i,j,state):
-                        corners.append((i,j,0))
+                        corners.append((i,j,0,0))
                         scores[i][j] = harris_score((i,j))
                         #print scores[i][j]
-        print scores
+        time_det = time.time()
+        print 'corners detected. Took: ', time_det - start_time, ' s'
         #print '_______________________________'
 
         print 'found' , len(corners)
@@ -211,7 +218,7 @@ class Detector:
                     """
             result = []
             #print scores
-            for (y,x,_) in corners:
+            for (y,x,r,a) in corners:
                 """
                 if ((scores[y][x] < scores[y-1][x]) | (scores[y][x] < scores[y-1][x-1]) | 
                     (scores[y][x] < scores[y][x-1]) | (scores[y][x] < scores[y+1][x-1]) |
@@ -220,7 +227,7 @@ class Detector:
                     pass
                 else:
                     result.append((y,x,scores[y][x],0))
-                #scores[y][x] += 1
+                scores[y][x] += 1
                 """
 
                 if ((scores[y][x] > scores[y-1][x]) & (scores[y][x] > scores[y-1][x-1]) & 
@@ -228,10 +235,12 @@ class Detector:
                     (scores[y][x] > scores[y+1][x]) & (scores[y][x] > scores[y+1][x+1]) &
                     (scores[y][x] > scores[y][x+1]) & (scores[y][x] > scores[y-1][x+1])):
                         result.append((y,x,scores[y][x],0)) 
-                            
+                          
         else:
             result = corners
-
+        time_nonmax = time.time()
+        print 'nonMaxSurpresion done. Took: ', time_nonmax -time_det, ' s'
+         
         u_max=[3,3,2,1]
 
         def angle((y,x,r,_)):
@@ -258,16 +267,15 @@ class Detector:
 
         if (comp_angle):
             result = map(lambda k: angle(k),result) 
-
-        
-        if use_harris:
-            result = map(lambda (y,x,r,an): (y,x,harris_score((y,x)),an),result)
+            time_ang = time.time()
+            print 'angles done. Took: ', time_ang - time_nonmax, 's'
 
 
         if (len(result) > max_count):
             result = heapq.nlargest(max_count,result,key=(lambda x: x[2]))
 
-
+        end_time = time.time()
+        print 'All done. Took: ', end_time - start_time, ' s'
         return result
 
 
