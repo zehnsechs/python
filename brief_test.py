@@ -14,14 +14,14 @@ img2 = cv2.imread(path2)
 gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 
 my_dect = fd.Detector()
-my_points = my_dect.detect(gray,True)
-my_points2 = my_dect.detect(gray2,True)
+my_points = my_dect.detect(gray)
+my_points2 = my_dect.detect(gray2)
 
 
 my_des = brief.Descriptor()
-new_f, t = my_des.describe(my_points,gray)
+new_f, t = my_des.describe(my_points,gray,False)
 
-print t
+print my_points,new_f,t
 #print new_f,len(new_f)
 # Initiate FAST detector
 fast = cv2.FeatureDetector_create("FAST")

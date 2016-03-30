@@ -24,7 +24,7 @@ class Detector:
     sigma = float(2)
     gaus_fact = float(1)/(math.sqrt(2*math.pi)*sigma)
 
-    def detect(self,img,max_count = 500, nonMaxSur = True, slow = True, comp_angle = False):
+    def detect(self,img,max_count = 500, nonMaxSur = True, slow = True, comp_angle = True):
         start_time = time.time()
         quater = self.pattern_size/4
         N = self.pattern_size+self.K+1
@@ -46,35 +46,29 @@ class Detector:
             (yd,xd) = self.p[i]
             col_d = image[y+yd][x+xd] - v
            # print 'd', col_d
-            if  abs(col_d) <= self.t:
-                return 0;
+            if  col_d < - self.t:
+                return 2
+            if col_d > self.t:
+                return 1
             else:
-                return np.sign(col_d)
+                return 0
         
         def circle_pix_dif(y,x,i):
             (yd,xd) = self.p[i]
             return image[y+yd][x+xd] - v 
 
         def high_speed_test(y,x):
-            d = 0
-            b = 0
-            p = []
-            result  = np.array([circle_pix_clas(y,x,0),circle_pix_clas(y,x,quater),
-                circle_pix_clas(y,x,2*quater),circle_pix_clas(y,x,3*quater)])
-            for i in range(4):
-                r =result[i]
-                if (r not in p) & ((r == result[(i+1)%4])| (r == result[(i-1)%4])):
-                    p.append(r)
-
-            if -1 in p:
-                if slow:
-                    if 1 in p:
-                        return 2
-                return -1
-            if 1 in p:
-                return 1
-            else:
+            a = np.bitwise_or(circle_pix_clas(y,x,0),circle_pix_clas(y,x,2*quater))
+            if not(a):
                 return 0
+            a = np.bitwise_and(a,np.bitwise_or(circle_pix_clas(y,x,quater),circle_pix_clas(y,x,3*quater)))
+            if not(a):
+                return 0
+            a = np.bitwise_and(a,np.bitwise_or(circle_pix_clas(y,x,1),circle_pix_clas(y,x,9)))
+            a = np.bitwise_and(a,np.bitwise_or(circle_pix_clas(y,x,3),circle_pix_clas(y,x,11)))
+            a = np.bitwise_and(a,np.bitwise_or(circle_pix_clas(y,x,5),circle_pix_clas(y,x,13)))
+            a = np.bitwise_and(a,np.bitwise_or(circle_pix_clas(y,x,7),circle_pix_clas(y,x,15)))
+            return a
 
        
         def corner_score((y,x)):
@@ -132,11 +126,11 @@ class Detector:
             #darker
             #if c == 0:
              #   c =-1
-            if(c == -1):
+            if(c == 2):
                 for i in range(N):
                     #print count
                     #if (d[i] < -self.t):
-                    if (circle_pix_clas(y,x,i%16) == -1):
+                    if (circle_pix_clas(y,x,i%16) == 2):
 
                         count += 1
                         if (count > self.K):
@@ -157,7 +151,7 @@ class Detector:
                     else:
                         count = 0
 
-            elif (c == 2):
+            elif (c == 3):
                 #print (y,x)
                 for i in range(N):
                     #print -1, count
@@ -191,7 +185,7 @@ class Detector:
                 v = int(image[i][j])
                 state = high_speed_test(i,j)
                 #print (i,j,state)
-                if (state!= 0):
+                if state:
                     
                     if coner_cand(i,j,state):
                         corners.append((i,j,0,0))

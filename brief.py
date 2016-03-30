@@ -7,7 +7,7 @@ import math
 class Descriptor:   
     size = 16
     patch_size = 48
-    threshold = 5
+    threshold = 10
     kernel = 9
     key_points = [[
 [-1, -2, -1, 7],
@@ -160,10 +160,10 @@ class Descriptor:
         nr_kp = len(features)
         (heigth,width) = img.shape
         int_img = tf.integral_image(img)
-        test = cv2.integral(img)
+        #test = cv2.integral(img)
         like_cv_img = np.concatenate((np.array([[0]*(heigth+1)]).T,np.concatenate(([[0]*width],int_img),axis = 0)),axis = 1)
         i = 0
-        print (like_cv_img == test).all()
+        #print (like_cv_img == test).all()
         like_cv_img = np.int32(like_cv_img)
         #print like_cv_img
         #print test
@@ -242,21 +242,23 @@ class Descriptor:
         print des1.dtype
         result = []
         
+        scores = np.zeros((len(des1),len(des2)),dtype = np.float16)
+
         for i in range(len(des1)):
             for j in range(len(des2)):
                 insert = True
-                d = dist(des1[i],des2[j])
-                if  d < self.threshold :
-                    for k in range(len(result)):
-                        if feat1[i] == result[k][0]:
-                            if result[k][2] > d:
-                                del result[k]
-                            else:
-                                insert = False
-                    if insert:    
-                        result.append((feat1[i],feat2[j],d))
+                scores[i][j] = dist(des1[i],des2[j])
+                
+
+        print scores
+        for i in range(len(des1)):
+            for j in range(len(des2)):
+                print i,j,scores[i][j]
+                if  scores[i][j] < self.threshold :
+                    print 'a0,i',np.argmin(scores, axis=0),'a1,j',np.argmin(scores, axis=1)
+                    if np.argmin(scores, axis=0)[j] == i  and np.argmin(scores, axis=1)[i] == j:  
+                        result.append((feat1[i],feat2[j],scores[i][j]))
                             
-                    print d
         return result 
 
     

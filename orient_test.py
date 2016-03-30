@@ -4,7 +4,7 @@ import brief
 from matplotlib import pyplot as plt
 import numpy as np
 
-path = '/Users/cknierim/python/left12.jpg'
+path = '/Users/cknierim/python/pattern.png'
 img = cv2.imread(path)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
