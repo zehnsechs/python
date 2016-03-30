@@ -1,0 +1,2 @@
+In der ersten Woche habe ich angefangen mich in das Thema feature detection einzulesen, nachdem ich meinen Arbeitsplatz und einen Rechner zugeteilt bekommen hatte habe ich im Internet die Paper zu den Algorithmen ORB und FAST gelesen und diese mit meinem Betreuer besprochen. Dann haben wir uns überlegt das ich anfangen solle die Algorithmen in Python zu implementieren.
+Ich habe mir hierfür auch die OpenCV implementation in C++ angeguckt, da es diesen auch als Python Modul gibt und es mir so ermöglichen würde meine Ergebnisse gut zu testen.
